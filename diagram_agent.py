@@ -2,7 +2,7 @@
 Smart Architecture Diagram Creator Agent using Agno Agentic SDK
 """
 import os
-from agno import Agno
+from agno.agent import Agent
 from agno.models.google import Gemini
 
 
@@ -15,8 +15,8 @@ class ArchitectureDiagramAgent:
         if not self.api_key:
             raise ValueError("Google API key is required. Set GOOGLE_API_KEY environment variable.")
         
-        # Initialize Agno agent with Gemini Nanobanana model
-        self.agent = Agno(
+        # Initialize Agno agent with Gemini model
+        self.agent = Agent(
             model=Gemini(id="gemini-2.0-flash-exp", api_key=self.api_key),
             description="An intelligent agent that creates architecture diagrams based on text descriptions",
             instructions=[

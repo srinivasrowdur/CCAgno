@@ -5,7 +5,7 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 from diagram_agent import create_architecture_agent
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 import io
 
@@ -55,20 +55,19 @@ def initialize_session_state():
         st.session_state.generated_image = None
     if 'architecture_analysis' not in st.session_state:
         st.session_state.architecture_analysis = None
+    if 'user_input' not in st.session_state:
+        st.session_state.user_input = ""
 
-def generate_diagram_with_imagen(prompt: str, api_key: str) -> Image:
+def generate_diagram_with_imagen(prompt: str, api_key: str) -> str:
     """
-    Generate diagram using Gemini's image generation capabilities
-    Note: Using text-based diagram representation as Imagen API has specific requirements
+    Generate diagram using Gemini's capabilities
+    Note: Using text-based diagram representation
     """
     try:
-        # Configure Gemini
-        genai.configure(api_key=api_key)
+        # Configure Gemini client
+        client = genai.Client(api_key=api_key)
         
         # Using Gemini to create a detailed text-based diagram representation
-        # In production, this would call Imagen API for actual image generation
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
-        
         diagram_prompt = f"""
 Create a detailed ASCII/text-based architecture diagram for:
 
@@ -78,7 +77,10 @@ Use boxes, arrows, and clear labels to show the system architecture.
 Make it visual and easy to understand.
 """
         
-        response = model.generate_content(diagram_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=diagram_prompt
+        )
         return response.text
     except Exception as e:
         st.error(f"Error generating diagram: {str(e)}")
@@ -126,29 +128,30 @@ def main():
     with col1:
         st.header("📝 System Description")
         
-        # Input area
-        user_input = st.text_area(
-            "Describe the system or architecture you want to visualize:",
-            height=200,
-            placeholder="E.g., A microservices-based e-commerce platform with user service, product catalog, shopping cart, payment gateway, and notification service. Users interact through a web and mobile app...",
-            help="Provide a detailed description of your system architecture"
-        )
-        
         # Example templates
         st.subheader("💡 Quick Templates")
         col_a, col_b, col_c = st.columns(3)
         
         with col_a:
             if st.button("🛒 E-commerce"):
-                user_input = "A scalable e-commerce platform with microservices architecture including user authentication, product catalog, shopping cart, payment processing, order management, and notification services. Uses API gateway, load balancer, and cloud storage."
+                st.session_state.user_input = "A scalable e-commerce platform with microservices architecture including user authentication, product catalog, shopping cart, payment processing, order management, and notification services. Uses API gateway, load balancer, and cloud storage."
                 
         with col_b:
             if st.button("💬 Chat App"):
-                user_input = "A real-time chat application with WebSocket connections, message queue for async processing, user presence tracking, file sharing, and message history. Includes authentication, database for messages, and Redis for caching."
+                st.session_state.user_input = "A real-time chat application with WebSocket connections, message queue for async processing, user presence tracking, file sharing, and message history. Includes authentication, database for messages, and Redis for caching."
                 
         with col_c:
             if st.button("🤖 ML Pipeline"):
-                user_input = "A machine learning pipeline for image classification with data ingestion, preprocessing, model training, model serving API, monitoring, and feedback loop. Uses cloud storage, GPU instances, and model registry."
+                st.session_state.user_input = "A machine learning pipeline for image classification with data ingestion, preprocessing, model training, model serving API, monitoring, and feedback loop. Uses cloud storage, GPU instances, and model registry."
+        
+        # Input area
+        user_input = st.text_area(
+            "Describe the system or architecture you want to visualize:",
+            value=st.session_state.user_input,
+            height=200,
+            placeholder="E.g., A microservices-based e-commerce platform with user service, product catalog, shopping cart, payment gateway, and notification service. Users interact through a web and mobile app...",
+            help="Provide a detailed description of your system architecture"
+        )
         
         # Generate button
         if st.button("🚀 Generate Architecture Diagram", type="primary"):
