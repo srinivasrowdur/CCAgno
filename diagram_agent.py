@@ -7,7 +7,7 @@ from agno.models.google import Gemini
 
 
 class ArchitectureDiagramAgent:
-    """Agent for creating architecture diagrams using Gemini Nanobanana model"""
+    """Agent for creating architecture diagrams using Gemini 2.0 Flash model (formerly Nanobanana)"""
     
     def __init__(self, api_key: str = None):
         """Initialize the architecture diagram agent"""
